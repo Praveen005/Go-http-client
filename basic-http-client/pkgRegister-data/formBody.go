@@ -7,6 +7,26 @@ import (
 	"mime/multipart"
 )
 
+//A multipart message typically consists of multiple parts, each delineated by a boundary string.
+//The boundary string is a unique identifier that separates the individual parts within the message.
+//In the context of HTTP, a multipart message is commonly used in form submissions that include files (file uploads). When a form contains file input fields, the browser sends a multipart/form-data request to the server. This request format enables the transmission of both text fields and binary files in a single HTTP request.
+
+//Given an object of type pkgData, we can create a multipart message to “package” the data.
+type pkgData struct{
+	Name		string
+	Version		string
+	Filename	string  		//The Filename field will store the filename of the package
+	Bytes		io.Reader		//pointing to the opened file, The io.Reader interface represents a stream of data that can be read.
+}
+
+// After POST req. we read the response and unmarshal it into the pkgRegisterResult object.
+type packageRegisterResult struct{
+	Id				string		`json:"id"`
+	Filename		string		`json:"filename"`
+	Size			int64		`json:"size"`
+}
+
+
 func createMultipartMessage(data pkgData) ([]byte, string, error){
 	// bytes.Buffer is a dynamic byte slice that can grow as needed. It provides an efficient way to handle the variable-sized content of a multipart message without needing to pre-allocate a fixed-size buffer.
 	var b bytes.Buffer  
@@ -39,6 +59,9 @@ func createMultipartMessage(data pkgData) ([]byte, string, error){
 	}
 	// The underscore (_) is used to discard the number of bytes written, and the error is stored in the variable err.
 	_, err = io.Copy(fw, data.Bytes)
+	if err != nil{
+		return nil, "", err
+	}
 	err =mw.Close()
 	if err != nil{
 		return nil, "", err
@@ -47,5 +70,4 @@ func createMultipartMessage(data pkgData) ([]byte, string, error){
 	return b.Bytes(), contentType, nil
 
 }
-
 

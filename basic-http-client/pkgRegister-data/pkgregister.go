@@ -1,17 +1,35 @@
 package pkgregisterdata
 
 import (
+	"bytes"
+	"encoding/json"
 	"io"
+	"net/http"
 )
 
-//A multipart message typically consists of multiple parts, each delineated by a boundary string.
-//The boundary string is a unique identifier that separates the individual parts within the message.
-//In the context of HTTP, a multipart message is commonly used in form submissions that include files (file uploads). When a form contains file input fields, the browser sends a multipart/form-data request to the server. This request format enables the transmission of both text fields and binary files in a single HTTP request.
+func registerPackageData(url string, data pkgData)(packageRegisterResult, error){
+	//create an instance of response data
+	p := packageRegisterResult{}
+	payload, contentType, err := createMultipartMessage(data)
+	//handle error
+	if err != nil{
+		return p, err
+	}
+	reader := bytes.NewReader(payload)
 
-//Given an object of type pkgData, we can create a multipart message to “package” the data.
-type pkgData struct{
-	Name		string
-	Version		string
-	Filename	string  		//The Filename field will store the filename of the package
-	Bytes		io.Reader		//pointing to the opened file, The io.Reader interface represents a stream of data that can be read.
+	resp, err := http.Post(url, contentType, reader)
+	//handle error
+	if err != nil{
+		return p, err
+	}
+
+	defer resp.Body.Close()
+	respData, err := io.ReadAll(resp.Body)
+	//handle error
+	if err != nil{
+		return p, err
+	}
+
+	err= json.Unmarshal(respData, &p)
+	return p, err
 }
