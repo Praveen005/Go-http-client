@@ -16,7 +16,6 @@ func startTestHTTPServer() *httptest.Server{
 		),
 		
 	)
-	fmt.Println(ts.URL)
 	return ts
 }
 
