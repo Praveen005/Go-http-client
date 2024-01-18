@@ -47,7 +47,7 @@ func packageRegHandler(w http.ResponseWriter, r *http.Request){
 	}
 }
 
-// Starting a test server to to test resgistration of package and handling multipart message
+// Starting a test server to test resgistration of package and handling of the multipart message
 
 func startTestPackageServer() *httptest.Server{
 	ts := httptest.NewServer(http.HandlerFunc(packageRegHandler))
