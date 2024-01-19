@@ -30,9 +30,17 @@ func FetchRemoteResource(client *http.Client, url string)([]byte, error){
 	//make the Get request to the url
 	r, err := client.Get(url)
 	//handle the error
+	
 	if err != nil{
 		return nil, err
 	}
+	//close the response body
+	// But why? Here's from http.Client documentation:
+	/*
+
+	If the returned error is nil, the Response will contain a non-nil Body which the user is expected to close. If the Body is not both read to EOF and closed, the Client's underlying RoundTripper (typically Transport) may not be able to re-use a persistent TCP connection to the server for a subsequent "keep-alive" request
+
+	*/
 	defer r.Body.Close()
 
 	return io.ReadAll(r.Body)
