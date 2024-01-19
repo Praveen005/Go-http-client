@@ -24,7 +24,6 @@ func TestFetchRemoteResource(t *testing.T){
 	defer ts.Close()
 
 	expected := "Hello World"
-
 	data, err := fetchRemoteResource(ts.URL)
 	if err != nil{
 		t.Fatal(err)
