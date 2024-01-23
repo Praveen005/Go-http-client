@@ -41,9 +41,9 @@ import (
 */
 
 //want to hit this? Take a link, shorten it, and again shorten the shortened one
-func redirectPolicyFunc(req *http.Request, via []*http.Request) error{
+func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	fmt.Println("Redirected to: ", req.URL)
-	if len(via) > 1{
+	if len(via) > 1 {
 		return errors.New("stopped after 1 redirect")
 	}
 	return nil
