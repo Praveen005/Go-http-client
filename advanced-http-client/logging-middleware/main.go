@@ -1,74 +1,4 @@
 /*
-	We have seen how to create a custom HTTP client
-
-	Furthermore, we have used methods such as Get() on the Client object to make requests
-
-	Underneath, the client is using a default request object of type http.Request that is defined in the standard library.
-
-	Customizing the http.Request object allows you to add headers or cookies or simply set the time-out for a request.
-
-	Creating a new request is done by calling the NewRequest() function
-
-	The NewRequestWithContext() function has the exact same purpose, but additionally it allows passing a context to the request
-		req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-
-		The first argument to the function is the context object.
-
-		The second parameter is the HTTP method, for which we are creating the request
-
-		url points to the URL of the resource to which we are going to make the request
-
-		The last argument is an io.Reader object pointing to the body, which in the case of a GET request will in most cases likely be empty
-
-		To create a request for a POST request, with io.Reader and body, you would make the following function call:
-			req, err := http.NewRequestWithContext(ctx, "POST", url, body)
-
-		We can send body(data) through get request as well, but that practice is not recommended.
-
-	Once you create the request object, you can then add a header using the following:
-		req.Header().Add("X-AUTH-HASH", "authhash")
-
-		This will add a header X-AUTH-HASH with the value authhash to the outgoing request.
-
-	You can encapsulate this logic in a function that creates a custom http.Request object for making a GET request with headers:
-
-
-*/
-/*
-	Context:
-
-
-		In Go, the context package provides a powerful tool for managing concurrent operations, cancellation, and deadlines. It's crucial for several aspects of Go programming, especially when dealing with goroutines, web requests, and other asynchronous tasks.
-
-		Components:
-
-			context.Context interface:
-				Defines the fundamental type representing a context. It holds values like deadlines, cancellation signals, and optional key-value pairs.
-
-			Methods:
-				Context offers methods for accessing deadlines, checking cancellation state, retrieving values, and creating child contexts.
-
-			Context Propagation:
-				Contexts can be passed down through function calls, ensuring all operations within a specific scope share the same information.
-
-		Key Features:
-
-			Cancellation:
-				Allows cancelling ongoing operations gracefully, preventing them from running indefinitely.
-
-			Deadlines:
-				Sets timeouts for operations, ensuring they terminate within a specified duration.
-
-			Value Sharing:
-				Enables efficient sharing of additional information through key-value pairs within a context.
-
-			Error Handling:
-				Simplifies error handling related to cancelled contexts or missed deadlines.
-
-
-		Read More: https://pkg.go.dev/context
-*/
-/*
 	The term middleware (or interceptor) is used for custom code that can be configured to be executed along with the core operation in a network server or client application.
 
 	In a server application, it would be code that gets executed when the server is processing a request from a client.
@@ -102,6 +32,8 @@
 			RoundTrip(*Request) (*Response, error)
 		}
 
+	[In simple term, RoundTripper ek interface hai, jo ki RoundTrip() method implement karti hai.
+	Ab RoundTrip() method kya karti hai, ye yahan Padhen, really nicely explained: https://pkg.go.dev/net/http#RoundTripper]
 
 	When the Transport object is not specified while creating a client, a
 	predefined object of type Transport, DefaultTransport is used. It is
@@ -110,6 +42,9 @@
 			..fields omitted
 		}
 
+		var DefaultTransport RoundTripper: Declares a variable named DefaultTransport of type RoundTripper
+
+		= &Transport{...}: Assigns a new Transport struct to DefaultTransport. This struct contains configuration for how HTTP requests should be made.
 
 	The Transport type defined in the net/http package implements the
 	RoundTrip() method as required by the RoundTripper interface. It is
@@ -145,13 +80,13 @@
 
 */
 
-package client
+package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 )
+
 
 type LoggingClient struct{
 	log *log.Logger
@@ -161,21 +96,11 @@ type LoggingClient struct{
 func(c LoggingClient) RoundTrip(r *http.Request)(*http.Response, error){
 	c.log.Printf("Sending a %s request to %s over %s\n", r.Method, r.URL, r.Proto)
 
+	// http.DefaultTransport, is the standard RoundTripper used by Go's http.Client
 	resp, err := http.DefaultTransport.RoundTrip(r)
 	c.log.Printf("Got back a response over %s\n", resp.Proto)
 	return resp, err
 }
  
-func createHTTPGetRequest(ctx context.Context, url string, headers map[string]string) (*http.Request, error){
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-	//handle the error
-	if err != nil{
-		return nil, err
-	}
 
-	for k, v := range headers{
-		req.Header.Add(k,v)
-	}
-	return req, err
-}
 
