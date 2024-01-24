@@ -112,3 +112,19 @@ func makeReq(){
 	
 }
 */
+
+
+
+The client's Do() method is used to send a custom HTTP request
+encapsulated by the http.Request object, req .
+
+
+A key point of interest in the above code is the two time-out
+configurations—one at the client level and the other at the request
+level. Of course, ideally your request time-out (if using the time-out
+context) should be lower than your client time-out else your client
+may time out before your request times out.
+
+
+Customization of a request object is not limited to adding headers.
+You can add cookies and basic auth information as well.
