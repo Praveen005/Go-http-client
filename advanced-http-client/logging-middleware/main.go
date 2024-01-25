@@ -74,7 +74,7 @@
 /*
 
 	The first middleware that you will write will log a message before sending a request. It will log another message when a response is received.
-	
+
 
 
 
@@ -83,8 +83,12 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"time"
 )
 
 
@@ -93,6 +97,8 @@ type LoggingClient struct{
 }
 
 // To satisfy the RoundTripper interface, we implement the RoundTrip() method:
+//The RoundTripper must not mutate(modify) the request or response or return an error. 
+// If there is an error during the round-trip (e.g., network error), it should be communicated through the Response object rather than returning an error. 
 func(c LoggingClient) RoundTrip(r *http.Request)(*http.Response, error){
 	c.log.Printf("Sending a %s request to %s over %s\n", r.Method, r.URL, r.Proto)
 
@@ -101,6 +107,69 @@ func(c LoggingClient) RoundTrip(r *http.Request)(*http.Response, error){
 	c.log.Printf("Got back a response over %s\n", resp.Proto)
 	return resp, err
 }
- 
 
+func createHTTPClientWithTimeout(d time.Duration) *http.Client{
+	client := http.Client{Timeout: d}
+	return &client
+}
+
+func fetchRemoteResource(client *http.Client, url string)([]byte, error){
+	r, err := client.Get(url)
+	if err != nil{
+		return nil, err
+	}
+	defer r.Body.Close()
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil{
+		return nil, err
+	}
+
+	return body, nil
+}
+
+func main(){
+	if len(os.Args) != 2{
+		fmt.Fprintf(os.Stdout, "Must specify the URL to get data from\n")
+		os.Exit(1)
+	}
+
+	myTransport := LoggingClient{}
+	l := log.New(os.Stdout, "", log.LstdFlags)  //new log.Logger object
+	myTransport.log = l
+
+	client := createHTTPClientWithTimeout(15 *time.Second)
+	client.Transport =&myTransport
+
+	body, err := fetchRemoteResource(client, os.Args[1])
+	if err != nil{
+		fmt.Fprintf(os.Stdout, "%#v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Fprintf(os.Stdout, "Bytes in Response: %d\n", len(body))
+}
+ 
+/*
+	we create a new
+	LoggingClient object. Then, we create a new log.Logger object by
+	calling the log.New() function. 
+	
+	The first parameter to the function is
+	a io.Writer object to which the logs will be written. Here we use
+	os.Stdout. 
+	
+	The second parameter to the function is the prefix string
+	to add to each log statement—an empty string is specified here. 
+	
+	The last parameter to the function is a flag—text to prefix to each log line.
+	Here we use log.LstdFlags, which will display the date and time. We
+	then assign the log.Logger object to the l field of the myTransport
+	object. 
+	
+	Finally, we set client.Transport to &myTransport .
+
+
+
+*/
 
