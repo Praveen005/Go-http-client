@@ -39,3 +39,11 @@ func TestAddHeadersMiddleware(t *testing.T){
 		}
 	}
 }
+
+/*
+We create a map, testHeaders, to specify the headers that we want to
+add to the outgoing request. The createClient() function is then
+called, passing the map as a parameter. This function also creates an AddHeaderMiddleware object, which is
+then set as the Transport when creating the http.Client object.
+
+*/
